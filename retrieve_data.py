@@ -11,6 +11,9 @@ class DataHandler:
 
     def get_data(self, item_number=15):
         self.item_number = item_number
+        self.pokemons = [] 
+        self.images = [] 
+        self.places = []
         self.get_pokemons()
         self.get_images()
         self.get_places()
