@@ -3,14 +3,14 @@ import json, requests
 class DataHandler:
     '''Class that will get and save the data'''
 
-    def __init__(self, item_number):
+    def __init__(self):
         self.base_url = 'https://fakerapi.it/api/v2'
-        self.item_number = item_number
         self.pokemons = []
         self.images = []
         self.places = []
 
-    def get_data(self):
+    def get_data(self, item_number=15):
+        self.item_number = item_number
         self.get_pokemons()
         self.get_images()
         self.get_places()
