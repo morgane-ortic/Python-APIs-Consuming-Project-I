@@ -53,8 +53,8 @@ class DataHandler:
             response_data = response.json()
             latitude = response_data['data'][0].get('latitude')
             longitude = response_data['data'][0].get('longitude')
-            living_place = self.get_places_extra(latitude, longitude)
-            self.places.append({f'latitude_{i+1}': latitude, f'longitude_{i+1}': longitude, f'living_place_{i+1}': living_place})
+            living_place, country_code = self.get_places_extra(latitude, longitude)
+            self.places.append({f'latitude_{i+1}': latitude, f'longitude_{i+1}': longitude, f'living_place_{i+1}': living_place, f'country_code_{i+1}': country_code})
 
 
     def get_places_extra(self, latitude, longitude):
@@ -74,9 +74,10 @@ class DataHandler:
 
             if not nearby_places:
                 living_place = 'the ocean'
+                country_code = 'N/A'
             else:
-                living_place = self.get_closest_place(nearby_places, latitude, longitude)
-            return living_place
+                living_place, country_code = self.get_closest_place(nearby_places, latitude, longitude)
+            return living_place, country_code
 
 
     def get_closest_place(self, nearby_places, latitude, longitude):
@@ -89,7 +90,8 @@ class DataHandler:
             if distance < min_distance:
                 min_distance = distance
                 closest_place = place['name']
-        return closest_place     
+                country_code = place['countrycode']
+        return closest_place, country_code     
 
 
     def create_dicts(self):
@@ -116,21 +118,26 @@ class DataHandler:
                 'image': self.images[i][f'image_{i+1}'],
                 'location': {
                     'living_place': self.places[i][f'living_place_{i+1}'],
+                    'country_code': self.places[i][f'country_code_{i+1}'],
                     'latitude': self.places[i][f'latitude_{i+1}'],
                     'longitude': self.places[i][f'longitude_{i+1}']
                 },
             }
             self.poke_data.append(pokelocation)
 
-
     def print_data(self):
-        for i, pokemon in enumerate(self.poke_data, start=1):            
+        code_table = self.read_json_file('country_codes')
+        self.code_to_name_map = {country['code']: country['name'] for country in code_table}
+        for i, pokemon in enumerate(self.poke_data, start=1):
+            country_code = pokemon['location']['country_code']         
+            country_name = self.code_to_name_map.get(country_code, "Unknown country code")
             print('--------')
             print(f'Pokemon {i}')
             print('--------')
             print(f'Name: {pokemon['pokemon']}')
             print(f'Image: {pokemon['image']}')
             print(f'Living Place: {pokemon['location']['living_place']}')
+            print(f'Country: {country_name}')
             print(f'Latitude: {pokemon['location']['latitude']}')
             print(f'Longitude: {pokemon['location']['longitude']}')
         print('--------')
