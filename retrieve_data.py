@@ -46,13 +46,51 @@ class DataHandler:
             image_url = response_data['data'][0].get('url')
             self.images.append({f'image_{i+1}': image_url})
 
+
     def get_places(self):
         for i in range(self.item_number):
             response = requests.get(f'{self.base_url}/places?_quantity=1')
             response_data = response.json()
             latitude = response_data['data'][0].get('latitude')
             longitude = response_data['data'][0].get('longitude')
-            self.places.append({f'latitude_{i+1}': latitude, f'longitude_{i+1}': longitude})
+            living_place = self.get_places_extra(latitude, longitude)
+            self.places.append({f'latitude_{i+1}': latitude, f'longitude_{i+1}': longitude, f'living_place_{i+1}': living_place})
+
+
+    def get_places_extra(self, latitude, longitude):
+        config = self.read_json_file('config')
+        geonames_username = config['geonames_username']
+
+        for i in range(self.item_number):
+            # calculate coordinates of a 50km box around the point
+            north = str(latitude + 0.225)
+            south = str(latitude - 0.225)
+            east = str(longitude + 0.225)
+            west = str(longitude - 0.225)
+
+            response = requests.get(f'http://api.geonames.org/citiesJSON?north={north}&south={south}&east={east}&west={west}&lang=de&username={geonames_username}')
+            response_data = response.json()
+            nearby_places = response_data.get('geonames', [])
+
+            if not nearby_places:
+                living_place = 'the ocean'
+            else:
+                living_place = self.get_closest_place(nearby_places, latitude, longitude)
+            return living_place
+
+
+    def get_closest_place(self, nearby_places, latitude, longitude):
+        closest_place = None
+        min_distance = float('inf')
+        for place in nearby_places:
+            place_lat = float(place['lat'])
+            place_lon = float(place['lng'])
+            distance = ((latitude - place_lat) ** 2 + (longitude - place_lon) ** 2) ** 0.5
+            if distance < min_distance:
+                min_distance = distance
+                closest_place = place['name']
+        return closest_place     
+
 
     def create_dicts(self):
 
@@ -77,6 +115,7 @@ class DataHandler:
                 'pokemon': self.pokemons[i][f'pokemon_{i+1}'],
                 'image': self.images[i][f'image_{i+1}'],
                 'location': {
+                    'living_place': self.places[i][f'living_place_{i+1}'],
                     'latitude': self.places[i][f'latitude_{i+1}'],
                     'longitude': self.places[i][f'longitude_{i+1}']
                 },
@@ -91,6 +130,7 @@ class DataHandler:
             print('--------')
             print(f'Name: {pokemon['pokemon']}')
             print(f'Image: {pokemon['image']}')
+            print(f'Living Place: {pokemon['location']['living_place']}')
             print(f'Latitude: {pokemon['location']['latitude']}')
             print(f'Longitude: {pokemon['location']['longitude']}')
         print('--------')

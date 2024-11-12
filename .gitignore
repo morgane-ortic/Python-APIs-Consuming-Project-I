@@ -67,3 +67,4 @@ ENV/
 pokemons.json
 places.json
 images.json
+config.json

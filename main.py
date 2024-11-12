@@ -13,8 +13,8 @@ def main():
         if choice == '1':
             while True:
                 poke_num = input('\nHow many pokemons do you want to retrieve? (Leave empty to get 15)\n')
+                print('\nRetrieving pokemons from the website. Please wait... This can take up to a couple of minutes')
                 if poke_num == '':
-                    print('Retrieving pokemons from the website. Please wait... This can take up to a couple of minutes')
                     data_handler.get_data()
                     print('\nPokemons retrieved and saved.')
                     break
