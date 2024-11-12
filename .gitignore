@@ -64,3 +64,6 @@ __pypackages__/
 env/
 venv/
 ENV/
+pokemons.json
+places.json
+images.json
